@@ -2151,6 +2151,8 @@ export enum ModRole {
   Admin = 'ADMIN',
   /** An anime data moderator */
   AnimeData = 'ANIME_DATA',
+  /** A character data moderator */
+  CharacterData = 'CHARACTER_DATA',
   /** A community moderator */
   Community = 'COMMUNITY',
   /** An AniList developer */
@@ -2172,7 +2174,9 @@ export enum ModRole {
   /** A retired moderator */
   Retired = 'RETIRED',
   /** A social media moderator */
-  SocialMedia = 'SOCIAL_MEDIA'
+  SocialMedia = 'SOCIAL_MEDIA',
+  /** A staff data moderator */
+  StaffData = 'STAFF_DATA'
 }
 
 export type Mutation = {
@@ -4779,7 +4783,7 @@ export type UserQueryVariables = Exact<{
 }>;
 
 
-export type UserQuery = { __typename?: 'Query', User?: { __typename?: 'User', id: number, name: string, bannerImage?: string | null, siteUrl?: string | null, createdAt?: number | null, avatar?: { __typename?: 'UserAvatar', large?: string | null, medium?: string | null } | null, options?: { __typename?: 'UserOptions', profileColor?: string | null } | null, statistics?: { __typename?: 'UserStatisticTypes', anime?: { __typename?: 'UserStatistics', count: number, meanScore: number } | null, manga?: { __typename?: 'UserStatistics', count: number, meanScore: number } | null } | null } | null };
+export type UserQuery = { __typename?: 'Query', User?: { __typename?: 'User', id: number, name: string, bannerImage?: string | null, siteUrl?: string | null, createdAt?: number | null, avatar?: { __typename?: 'UserAvatar', large?: string | null, medium?: string | null } | null, favourites?: { __typename?: 'Favourites', anime?: { __typename?: 'MediaConnection', nodes?: Array<{ __typename?: 'Media', id: number, title?: { __typename?: 'MediaTitle', romaji?: string | null, english?: string | null, native?: string | null, userPreferred?: string | null } | null } | null> | null } | null, manga?: { __typename?: 'MediaConnection', nodes?: Array<{ __typename?: 'Media', id: number, title?: { __typename?: 'MediaTitle', romaji?: string | null, english?: string | null, native?: string | null, userPreferred?: string | null } | null } | null> | null } | null } | null, options?: { __typename?: 'UserOptions', profileColor?: string | null } | null, statistics?: { __typename?: 'UserStatisticTypes', anime?: { __typename?: 'UserStatistics', count: number, meanScore: number } | null, manga?: { __typename?: 'UserStatistics', count: number, meanScore: number } | null } | null } | null };
 
 export type UserCardQueryVariables = Exact<{
   username?: InputMaybe<Scalars['String']['input']>;

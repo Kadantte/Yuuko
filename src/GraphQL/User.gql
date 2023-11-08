@@ -9,6 +9,30 @@ query User($username: String, $userid: Int) {
     bannerImage
     siteUrl
     createdAt
+    favourites {
+      anime {
+        nodes {
+          id
+          title {
+            romaji
+            english
+            native
+            userPreferred
+          }
+        }
+      }
+      manga {
+        nodes {
+          id
+          title {
+            romaji
+            english
+            native
+            userPreferred
+          }
+        }
+      }
+    }
     options {
       profileColor
     }
