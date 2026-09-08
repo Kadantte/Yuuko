@@ -21,7 +21,7 @@ export default {
     .setDescription(description)
     .addStringOption((option) => option.setName("manga").setDescription("The manga to search for").setRequired(true)),
 
-  run: async ({ interaction, client }, hookData): Promise<void> => {
+  run: async ({ interaction }, hookData): Promise<void> => {
 
     const vars: Partial<{
       query: string;
@@ -58,7 +58,7 @@ export default {
 
       logger.debug("User cache hit", { seriesId: vars.mID, aniListId: interaction.aniListId, type: "generic" })
 
-      return void handleData({ media: cacheData }, interaction, client, "MANGA");
+      return void handleData({ media: cacheData }, interaction, "MANGA");
     }
 
     const {
@@ -70,17 +70,17 @@ export default {
       throw new YuukoError("Couldn't find any data.", { vars });
     }
 
-    if (!mangaIdFound) redis.set(`_mangaId-${vars.query}`, data.id);
+    if (!mangaIdFound) await redis.set(`_mangaId-${vars.query}`, data.id);
 
     const { mediaListEntry, ...redisData } = data;
-    redis.json.set(`_manga-${data.id}`, "$", redisData);
-    redis.expireAt(`_manga-${redisData.id}`, new Date(Date.now() + 604800000))
+    await redis.json.set(`_manga-${data.id}`, "$", redisData);
+    await redis.expireAt(`_manga-${redisData.id}`, new Date(Date.now() + 604800000))
 
     for (const synonym of redisData.synonyms || []) {
       if (!synonym) continue;
-      redis.set(`_mangaId-${normalize(synonym)}`, data.id.toString());
+      await redis.set(`_mangaId-${normalize(synonym)}`, data.id.toString());
     }
 
-    return void handleData({ media: data, headers: headers }, interaction, client, "MANGA", hookData);
+    return void handleData({ media: data, headers }, interaction, "MANGA", hookData);
   },
 } satisfies Command<{ id?: number, manga?: string }>;
