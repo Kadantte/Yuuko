@@ -7,15 +7,15 @@ import { logger } from "#src/utils/logger";
 export async function runChecks() {
   // Flatten the array of checks
   const checksPath = srcPath("checks");
-  const checkFiles = fs.readdirSync(checksPath).filter((file) => file.endsWith(".ts"));
+  const checkFiles = fs.readdirSync(checksPath).filter((file) => file.endsWith(".ts") && !file.includes("run.ts"));
 
   const checks: Check[] = [];
 
   for (const file of checkFiles) {
     const filePath = path.join(checksPath, file);
-    const module = await import(filePath) as { default: Check };
+    const module = await import(filePath) as { default: Check[] };
 
-    checks.push(module.default);
+    checks.push(...module.default);
   }
 
   logger.info("Running checks", { type: "check", total: checks.length });
