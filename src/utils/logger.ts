@@ -195,6 +195,10 @@ class Logger {
     this.logger.debug(message, meta);
   }
 
+  warn(message: string, meta?: LogMeta) {
+    this.logger.warn(message, meta);
+  }
+
   logCommand(command: Command, interaction: UsableInteraction) {
     if (!interaction.isChatInputCommand()) return;
     const subcommand = interaction.options.getSubcommand(false) ?? "";

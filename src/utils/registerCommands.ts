@@ -14,21 +14,25 @@ export async function registerCommands(client: Client) {
   const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".ts"));
 
   logger.info("Loaded commands", { type: "startup", total: commandFiles.length, commands: commandFiles })
-  const slashCommands: Command[] = [];
+  const commandPayloads: unknown[] = [];
+  const loadedCommandNames: string[] = [];
 
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
-    const module = await import(filePath) as { default: Command };
+    const module = (await import(filePath)) as { default?: Command };
 
-    slashCommands.push(module.default);
+    if (!module.default?.name || !module.default?.withBuilder) {
+      logger.warn(`Command file "${file}" is missing a default Command export`, { type: "startup" });
+      continue;
+    }
+
+    const command = module.default;
+    client.commands.set(command.name, command);
+    commandPayloads.push(command.withBuilder.toJSON());
+    loadedCommandNames.push(command.name);
   }
 
-  const commandPayloads = slashCommands.map((command) => {
-    client.commands.set(command.name, command);
-    return command.withBuilder.toJSON();
-  });
-
-  logger.info("Loaded slash commands", { type: "startup", total: slashCommands.length })
+  logger.info("Loaded slash commands", { type: "startup", total: loadedCommandNames.length })
 
   // ^ Register Slash Commands
   const rest = new REST({ version: "10" }).setToken(env.TOKEN);
@@ -37,23 +41,21 @@ export async function registerCommands(client: Client) {
   const guildId = env.GUILD_ID;
   const isProduction = environment === "production" || environment === "docker";
 
+  const route = isProduction
+    ? Routes.applicationCommands(clientId)
+    : Routes.applicationGuildCommands(clientId, guildId);
+
   try {
-    logger.info(`Started refreshing ${slashCommands.length} slash (/) commands.`, {
+    logger.info(`Refreshing ${commandPayloads.length} slash (/) commands.`, {
       type: "startup",
-      commands: slashCommands.map((x) => x.name),
+      commands: loadedCommandNames,
     });
 
-    if (isProduction) {
-      await rest.put(Routes.applicationCommands(clientId), { body: commandPayloads });
-    } else {
-      await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commandPayloads });
-    }
+    await rest.put(route, { body: commandPayloads });
 
-    await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: slashCommands });
-
-    logger.info(`Refreshed ${slashCommands.length} slash (/) commands.`, {
+    logger.info(`Refreshed ${commandPayloads.length} slash (/) commands.`, {
       type: "startup",
-      commands: slashCommands.map((x) => x.name),
+      commands: loadedCommandNames,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
